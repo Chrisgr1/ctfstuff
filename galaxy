@@ -1,0 +1,23 @@
+import binascii
+
+def xor_decrypt(ciphertext, key):
+    key_bytes = key.encode()  # Convert key to bytes
+    ciphertext_bytes = binascii.unhexlify(ciphertext)  # Convert hex to bytes
+    decrypted = bytearray()
+
+    for i in range(len(ciphertext_bytes)):
+        decrypted.append(ciphertext_bytes[i] ^ key_bytes[i % len(key_bytes)])
+    
+    return decrypted
+
+encrypted_flag = "2f4806c2bca9d25d4bde7d54634d799c13fa216d0ea3c36090914bd2384dc7727d16a246d4eb527f6bbfcbfd387b2edab7816723"
+
+# Try different keys
+keys = ["58", "12c94", "876574"]
+
+for key in keys:
+    decrypted = xor_decrypt(encrypted_flag, key)
+    print(f"Decrypted with key {key}: {decrypted}")
+    if decrypted.startswith(b"flag{"):
+        print("Possible flag found!")
+        break
