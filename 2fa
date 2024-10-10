@@ -1,6 +1,10 @@
+import nest_asyncio
+import asyncio
 import itertools
 import aiohttp
-import asyncio
+
+# Apply the nest_asyncio fix for Jupyter
+nest_asyncio.apply()
 
 # Configuration
 TARGET_URL = "https://blackrock-d6aeb6b1d709-2fa-1.chals.io/2fa"  # Replace with the actual URL
@@ -48,5 +52,5 @@ async def main():
         if tasks:
             await asyncio.gather(*tasks)
 
-if __name__ == "__main__":
-    asyncio.run(main())
+# Run the main coroutine in Jupyter Notebook
+await main()
