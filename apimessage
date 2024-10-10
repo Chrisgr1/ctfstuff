@@ -16,16 +16,19 @@ def send_message_to_api(message_content):
         'Content-Type': 'application/json'
     }
     
-    # Data to be sent in the POST request
+    # Data to be sent in the POST request (ensure it is a dictionary)
     data = {
         'message': message_content
     }
+    
+    print(f"Data being sent: {data}")
+    print(f"Data type: {type(data)}")  # Ensure this prints as <class 'dict'>
     
     try:
         # Send the POST request to the API with the message content
         response = requests.post(endpoint, headers=headers, json=data)
         
-        # Check for HTTP errors and raise an exception if any
+        # Check for HTTP errors and raise an exception (if any)
         response.raise_for_status()
         
         # Try to parse the JSON response (if applicable)
@@ -50,4 +53,3 @@ if __name__ == "__main__":
     
     # Print the response from the server
     print(f"API Response: {api_response}")
-
