@@ -1,0 +1,53 @@
+import requests
+import json
+
+# Define the API endpoint as a variable
+BASE_URL = 'https://blackrock-e7743166043-api-challenge-0.chals.io'
+
+# Function to send a message to the API
+def send_message_to_api(message_content):
+    """ Sends a message to the specified API endpoint and returns the server's response. """
+    
+    # Complete endpoint to save the message
+    endpoint = f'{BASE_URL}/save_message'
+    
+    # Define headers for the POST request
+    headers = {
+        'Content-Type': 'application/json'
+    }
+    
+    # Data to be sent in the POST request
+    data = {
+        'message': message_content
+    }
+    
+    try:
+        # Send the POST request to the API with the message content
+        response = requests.post(endpoint, headers=headers, json=data)
+        
+        # Check for HTTP errors and raise an exception if any
+        response.raise_for_status()
+        
+        # Try to parse the JSON response (if applicable)
+        try:
+            return response.json()
+        except json.JSONDecodeError:
+            # If response is not JSON, return raw text
+            return response.text
+
+    except requests.exceptions.HTTPError as http_err:
+        return f'HTTP error occurred: {http_err}'  # Handle HTTP errors
+    except Exception as err:
+        return f'An error occurred: {err}'  # Handle any other errors
+
+# Main program flow
+if __name__ == "__main__":
+    # Test the function with a sample message
+    message_content = "wassapppppaaap"  # Replace with your actual message
+    
+    # Call the API and print the result
+    api_response = send_message_to_api(message_content)
+    
+    # Print the response from the server
+    print(f"API Response: {api_response}")
+
