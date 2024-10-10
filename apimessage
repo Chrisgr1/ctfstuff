@@ -1,44 +1,63 @@
 import requests
+import xml.etree.ElementTree as ET
 
-# Define the API endpoint as a variable
+# Define the API endpoint
 BASE_URL = 'https://blackrock-e7743166043-api-challenge-0.chals.io'
 
-# Test GET request to see if the server responds
-def test_get_request():
-    try:
-        response = requests.get(BASE_URL, verify=False)
-        print(f"GET Status Code: {response.status_code}")
-        print(f"GET Response: {response.text}")
-    except Exception as e:
-        print(f"GET request failed: {e}")
+# Function to create XML payload
+def create_xml_payload(message_content):
+    """
+    Creates an XML payload for the POST request based on the message content.
+    """
+    # Create an XML structure with 'Message' as the root and 'Content' as the message field
+    root = ET.Element('Message')
+    content_element = ET.SubElement(root, 'Content')
+    content_element.text = message_content
 
-# Function to send a message to the API (POST request)
-def send_message_to_api(message_content):
+    # Convert the ElementTree to a string
+    xml_payload = ET.tostring(root, encoding='utf-8', method='xml')
+    return xml_payload
+
+# Function to send a POST request with XML payload to the API
+def send_message_to_api_xml(message_content):
+    """
+    Sends a POST request with an XML payload to the specified API endpoint.
+    """
     endpoint = f'{BASE_URL}/save_message'
+
+    # Set XML content type in headers
     headers = {
-        'Content-Type': 'application/json',
-        'User-Agent': 'Mozilla/5.0'  # Add a user agent just in case
-    }
-    data = {
-        'message': message_content
+        'Content-Type': 'application/xml',  # Important to send as XML
+        'User-Agent': 'Mozilla/5.0'         # Add a user-agent to mimic a browser
     }
 
+    # Create the XML payload
+    xml_payload = create_xml_payload(message_content)
+    
     try:
-        # POST request with SSL verification disabled for testing
-        response = requests.post(endpoint, headers=headers, json=data, verify=False)
-        response.raise_for_status()  # Raise an error for bad responses
-        return response.json()  # Try to parse as JSON
+        # Send the POST request with the XML payload
+        response = requests.post(endpoint, headers=headers, data=xml_payload, verify=False)  # Verify False to avoid SSL issues
+        
+        # Check for HTTP errors and raise an exception for bad responses
+        response.raise_for_status()
+
+        # Return the response text or status code
+        return response.text
+    
     except requests.exceptions.HTTPError as http_err:
-        print(f'HTTP error occurred: {http_err}')
+        return f'HTTP error occurred: {http_err}'  # Handle HTTP errors
+    except requests.exceptions.ConnectionError as conn_err:
+        return f'Connection error occurred: {conn_err}'  # Handle connection errors
     except Exception as err:
-        print(f'An error occurred: {err}')
+        return f'An error occurred: {err}'  # Handle any other errors
 
-# Test the API with a GET request and a POST request
+# Main program flow
 if __name__ == "__main__":
-    # Test GET request
-    test_get_request()
-
-    # Test POST request with message
-    message_content = "wassapppppaaap"
-    api_response = send_message_to_api(message_content)
-    print(f"API POST Response: {api_response}")
+    # Test the function with a sample message
+    message_content = "wassapppppaaap"  # Replace with your actual message
+    
+    # Call the API and print the result
+    api_response = send_message_to_api_xml(message_content)
+    
+    # Print the response from the server
+    print(f"API XML Response: {api_response}")
