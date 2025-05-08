@@ -1,0 +1,107 @@
+Project Plan Checklist: Permission - Department - Permission Group Analysis
+
+
+---
+
+1. Define Objective and Scope
+
+[ ] Clarify primary question (patterns, recommendations, anomaly detection)
+
+[ ] Define outputs (report, dashboard, model)
+
+[ ] Identify stakeholders and success criteria
+
+
+2. Understand and Inspect Raw Data
+
+[ ] Collect all relevant datasets
+
+[ ] Understand columns and data types
+
+[ ] Check for missing values and duplicates
+
+[ ] Identify table relationships (e.g. user -> role -> dept -> permission -> group)
+
+
+3. Clean the Data
+
+[ ] Remove duplicates
+
+[ ] Handle missing values
+
+[ ] Standardize formats and categories
+
+[ ] Validate keys and links between tables
+
+
+4. Explore and Visualize Basic Distributions
+
+[ ] Count of permissions per department
+
+[ ] Count of permissions per role
+
+[ ] Count of permissions per permission group
+
+[ ] Count of permission groups per department and role
+
+[ ] Identify common and rare permission groups
+
+
+5. Analyze Relationships Between Categories
+
+[ ] Build cross-tabulations (dept x group, role x group)
+
+[ ] Create heatmaps or frequency tables
+
+[ ] Explore co-occurrence patterns
+
+[ ] Flag unexpected combinations or anomalies
+
+
+6. Feature Engineering
+
+[ ] Create new features (number of groups, common groups, rare groups)
+
+[ ] Add binary flags for anomalies
+
+[ ] Generate cluster labels if needed
+
+
+7. (Optional) Build Models or Rules
+
+[ ] Run clustering algorithms to group similar profiles
+
+[ ] Build rule-based recommendation logic
+
+[ ] Identify anomalies using anomaly detection techniques
+
+
+8. Summarize Insights
+
+[ ] Prepare summary tables or dashboards
+
+[ ] Document typical patterns
+
+[ ] List rare/unusual permission assignments
+
+[ ] Draft recommendations
+
+
+9. Document and Share
+
+[ ] Document findings, methods, and results
+
+[ ] Prepare visuals and summaries for stakeholders
+
+[ ] Share recommendations and proposed next steps
+
+
+10. Plan for Maintenance and Future Development
+
+[ ] Define plan to refresh and update analysis
+
+[ ] Identify automation opportunities
+
+[ ] Gather feedback and iterate
+
+
